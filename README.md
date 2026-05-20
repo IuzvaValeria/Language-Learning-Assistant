@@ -1,1 +1,1 @@
-# Language-Learning-Assistant-Japanese---English-
+# Language-Learning-Assistant-English===>Japanese
