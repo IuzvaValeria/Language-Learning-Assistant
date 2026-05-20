@@ -1,6 +1,7 @@
-from app.translator import translate_to_japanese
-
+from app.translator import generate_response
 if __name__ == "__main__":
-    text = "I want to learn Japanese."
-    result = translate_to_japanese(text)
+    result = generate_response(
+        text="I want to learn Japanese.",
+        mode="translate"
+    )
     print(result)
