@@ -1,29 +1,20 @@
 from transformers import pipeline
+from app.prompts import build_translation_prompt
+
+MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
 
 translator = pipeline(
     "text-generation",
-    model="Qwen/Qwen2.5-3B-Instruct",
+    model=MODEL_NAME,
     device_map="auto"
 )
 
-prompt = """
-You are an English-to-Japanese translator for language learners.
+def translate_to_japanese(english_text: str) -> str:
+    prompt = build_translation_prompt(english_text)
+    result = translator(
+        prompt,
+        max_new_tokens=300,
+        do_sample=False
+    )
 
-Translate this sentence to Japanese and explain it simply.
-
-English: I want to learn Japanese.
-
-Return:
-Japanese:
-Romaji:
-Grammar:
-Vocabulary:
-"""
-
-result = translator(
-    prompt,
-    max_new_tokens=300,
-    do_sample=False
-)
-
-print(result[0]["generated_text"])
+    return result[0]["generated_text"]

@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "english": "I want to learn Japanese!",
+    "expected_japanese": "日本語を勉強したいです。",
+    "level": "beginner"
+  },
+  {
+    "id": 2,
+    "english": "I go to university every day....",
+    "expected_japanese": "毎日学校に行きます。",
+    "level": "beginner"
+  },
+  {
+    "id": 3,
+    "english": "i love cats and sharks.",
+    "expected_japanese": "昨日寿司を食べました。",
+    "level": "beginner"
+  }
+]
