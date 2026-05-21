@@ -11,7 +11,7 @@ env/
 #Jupyter
 .ipynb_checkpoints/
 #test+cache files
-.pytest_cache/
+.pytest_cacgit he/
 .mypy_cache/
 .ruff_cache/
 .cache/
@@ -29,6 +29,10 @@ outputs/
 *.pt
 *.pth
 *.safetensors
+#datasets
+data/raw/
+data/processed/
+data/final/
 #OS/edit
 .vscode/
 .idea/
