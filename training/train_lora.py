@@ -10,13 +10,11 @@ from transformers import (
 )
 from trl import SFTTrainer
 
-
 MODEL_NAME = "mistralai/Ministral-3-3B-Instruct-2512" 
 
 TRAIN_FILE = Path("data/final/train.jsonl")
 VAL_FILE = Path("data/final/val.jsonl")
 OUTPUT_DIR = Path("models/n5_lora")
-
 
 def format_chat_example(example):
     messages = example["messages"]
@@ -34,7 +32,6 @@ def format_chat_example(example):
             text += f"[ASSISTANT]\n{content}\n[/ASSISTANT]</s>"
 
     return text
-
 
 def main():
     if not TRAIN_FILE.exists():
@@ -112,7 +109,6 @@ def main():
     tokenizer.save_pretrained(OUTPUT_DIR)
 
     print(f"LoRA adapter saved to: {OUTPUT_DIR}")
-
 
 if __name__ == "__main__":
     main()
