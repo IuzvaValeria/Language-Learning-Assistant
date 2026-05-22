@@ -1,5 +1,5 @@
 from app.prompt_loader import load_prompt
-
+from app.llm_client import generate_answer
 
 def get_prompt_for_mode(mode: str) -> tuple[str, str]:
     if mode == "translate":
@@ -100,3 +100,10 @@ def answer_user(message: str) -> str:
         "4. Correct a mistake\n"
         "5. Give example sentences"
     )
+def answer_with_llm(mode: str, user_input: str) -> str:
+    prompt_file, prompt_text = get_prompt_for_mode(mode)
+
+    if not prompt_text:
+        return f"Prompt file for mode '{mode}' was not found."
+
+    return generate_answer(prompt_text, user_input)
