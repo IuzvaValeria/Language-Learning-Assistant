@@ -36,5 +36,6 @@ data/final/
 #OS/edit
 .vscode/
 .idea/
+.vs/
 .DS_Store
 tempCodeRunnerFile.py
