@@ -39,3 +39,5 @@ data/final/
 .vs/
 .DS_Store
 tempCodeRunnerFile.py
+#archives
+*.zip
