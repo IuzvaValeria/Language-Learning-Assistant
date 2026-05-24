@@ -41,3 +41,4 @@ data/final/
 tempCodeRunnerFile.py
 #archives
 *.zip
+.venv311/
