@@ -4,7 +4,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
 from backend.prompts import load_full_prompt
 
-MODEL_NAME = "mistralai/Ministral-3b-instruct"
+MODEL_NAME = "mistralai/Ministral-3b-instruct-2512"
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ADAPTER_PATH = PROJECT_ROOT / "adapter"
 
