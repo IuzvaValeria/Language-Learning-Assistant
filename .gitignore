@@ -4,6 +4,7 @@ __pycache__/
 #virt environments
 venv/
 .venv/
+.venv311/
 env/
 #env var-s and tss secrets
 .env
@@ -11,13 +12,14 @@ env/
 #Jupyter
 .ipynb_checkpoints/
 #test+cache files
-.pytest_cacgit he/
+.pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .cache/
 #logs
 *.log
 logs/
+wandb/
 #local db
 *.sqlite3
 db.sqlite3
@@ -25,10 +27,13 @@ db.sqlite3-journal
 #model files and outputs
 models/
 outputs/
+adapter/
+checkpoints/
 *.bin
 *.pt
 *.pth
 *.safetensors
+*.gguf
 #datasets
 data/raw/
 data/processed/
@@ -41,4 +46,3 @@ data/final/
 tempCodeRunnerFile.py
 #archives
 *.zip
-.venv311/
