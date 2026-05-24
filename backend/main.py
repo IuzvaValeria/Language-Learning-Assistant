@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from backend.model_service import load_model, generate_response
+from backend.llm_service import load_model, generate_response
 from backend.prompts import AVAILABLE_MODES
 
 @asynccontextmanager
