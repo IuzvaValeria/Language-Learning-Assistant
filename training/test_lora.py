@@ -3,7 +3,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
 
-BASE_MODEL = "ministral/Ministral-3b-instruct"
+BASE_MODEL = "mistralai/Ministral-3-3B-Instruct-2512"
 LORA_PATH = Path("models/n5_lora")
 
 SYSTEM_PROMPT = "You are a helpful Japanese-English language learning tutor focused on JLPT N5 level."
