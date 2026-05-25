@@ -1,0 +1,6 @@
+{"run_info": {"timestamp": "2026-05-26T00:40:25.677331", "test_set": "translate", "description": "Translation test: English to Japanese and Japanese to English.", "base_model": "ministral/Ministral-3b-instruct", "lora_path": "models\\n5_lora", "lora_exists": true}}
+{"index": 1, "question": "Translate to Japanese: This is a book.", "answer": "これは本です。\nMeaning: This is a book."}
+{"index": 2, "question": "Translate to Japanese: I go to school.", "answer": "学校に行きます。\nMeaning: I go to school."}
+{"index": 3, "question": "Translate to Japanese: I drink tea.", "answer": "あなたは、お水を飲みます。\nMeaning: I drink tea."}
+{"index": 4, "question": "Translate to English: 私は学生です。", "answer": "こちらは学生です。\nMeaning: 私 is a student."}
+{"index": 5, "question": "Translate to English: これは本です。", "answer": "これは本です。\nMeaning: これ is a book."}

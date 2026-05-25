@@ -11,7 +11,7 @@ from transformers import (
 from trl import SFTConfig, SFTTrainer
 
 
-MODEL_NAME = "mistralai/Ministral-3-3B-Instruct-2512"
+MODEL_NAME = "ministral/Ministral-3b-instruct"
 
 TRAIN_FILE = Path("data/final/train.jsonl")
 VAL_FILE = Path("data/final/val.jsonl")
