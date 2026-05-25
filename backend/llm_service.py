@@ -4,7 +4,7 @@ from transformers import Mistral3ForConditionalGeneration, MistralCommonBackend
 from backend.prompts import load_full_prompt
 
 USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
-MODEL_NAME = "ministral/Ministral-3b-instruct"
+MODEL_NAME = "mistralai/Ministral-3B-Instruct-2512"
 
 tokenizer = None
 model = None
