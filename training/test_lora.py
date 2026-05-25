@@ -90,7 +90,7 @@ def run_interactive(tokenizer, model):
         print(f"\nTutor:\n{answer}\n")
 
 
-if name == "main":
+if __name__ == "__main__":
     print("Loading model...")
     tokenizer, model = load_model()
     print("Model ready.\n")
@@ -107,3 +107,4 @@ if name == "main":
     else:
         print("Invalid choice, running auto mode")
         run_auto(tokenizer, model)
+
