@@ -10,7 +10,7 @@ from transformers import (
     BitsAndBytesConfig,
 )
 from trl import SFTTrainer
-MODEL_NAME = "mistralai/Ministral-3-3B-Instruct-2512"
+MODEL_NAME = "Aratako/Ministral-3-3B-Instruct-2512-TextOnly"
 
 TRAIN_FILE = Path("data/final/train.jsonl")
 VAL_FILE = Path("data/final/val.jsonl")
@@ -54,7 +54,10 @@ def main():
         bnb_4bit_use_double_quant=True,  
     )
 
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    tokenizer = AutoTokenizer.from_pretrained(
+        MODEL_NAME,
+        fix_mistral_regex=True
+    )
 
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
