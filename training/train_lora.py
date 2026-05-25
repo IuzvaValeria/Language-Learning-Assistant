@@ -6,11 +6,12 @@ from peft import LoraConfig
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    TrainingArguments,
     BitsAndBytesConfig,
 )
-from trl import SFTTrainer
-MODEL_NAME = "Aratako/Ministral-3-3B-Instruct-2512-TextOnly"
+from trl import SFTConfig, SFTTrainer
+
+
+MODEL_NAME = "ministral/Ministral-3b-instruct"
 
 TRAIN_FILE = Path("data/final/train.jsonl")
 VAL_FILE = Path("data/final/val.jsonl")
@@ -19,8 +20,8 @@ OUTPUT_DIR = Path("models/n5_lora")
 MAX_SEQ_LENGTH = 512
 SEED = 42
 
-def format_chat_example(example, tokenizer):
 
+def format_chat_example(example, tokenizer):
     messages = example["messages"]
 
     text = tokenizer.apply_chat_template(
@@ -31,6 +32,7 @@ def format_chat_example(example, tokenizer):
 
     return text
 
+
 def main():
     if not TRAIN_FILE.exists():
         raise FileNotFoundError(f"Train file not found: {TRAIN_FILE}")
@@ -40,23 +42,27 @@ def main():
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    use_bf16 = torch.cuda.is_bf16_supported()
-    use_fp16 = not use_bf16
+    use_bf16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+    use_fp16 = torch.cuda.is_available() and not use_bf16
 
-    print(f"GPU: {torch.cuda.get_device_name(0)}")
-    print(f"VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+    if torch.cuda.is_available():
+        print(f"GPU: {torch.cuda.get_device_name(0)}")
+        print(f"VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+    else:
+        print("GPU: not available, using CPU")
+
     print(f"Using bf16: {use_bf16}, fp16: {use_fp16}")
 
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.bfloat16 if use_bf16 else torch.float16,
-        bnb_4bit_use_double_quant=True,  
+        bnb_4bit_use_double_quant=True,
     )
 
     tokenizer = AutoTokenizer.from_pretrained(
         MODEL_NAME,
-        fix_mistral_regex=True
+        trust_remote_code=True,
     )
 
     if tokenizer.pad_token is None:
@@ -82,57 +88,67 @@ def main():
             "k_proj",
             "v_proj",
             "o_proj",
-            "gate_proj",   
-            "up_proj",     
-            "down_proj",   
+            "gate_proj",
+            "up_proj",
+            "down_proj",
         ],
     )
 
     def formatting_func(example):
         return format_chat_example(example, tokenizer)
 
-    training_args = TrainingArguments(
+    train_dataset = load_dataset(
+        "json",
+        data_files={"train": str(TRAIN_FILE)},
+        split="train",
+    )
+
+    eval_dataset = load_dataset(
+        "json",
+        data_files={"validation": str(VAL_FILE)},
+        split="validation",
+    )
+
+    training_args = SFTConfig(
         output_dir=str(OUTPUT_DIR),
-        num_train_epochs=3,              
-        per_device_train_batch_size=4,   
-        per_device_eval_batch_size=4,
-        gradient_accumulation_steps=4,   
+
+        num_train_epochs=3,
+        per_device_train_batch_size=1,
+        per_device_eval_batch_size=1,
+        gradient_accumulation_steps=8,
         learning_rate=2e-4,
-        lr_scheduler_type="cosine",      
-        warmup_ratio=0.05,              
+        lr_scheduler_type="cosine",
+
+        max_length=MAX_SEQ_LENGTH,
+
         logging_steps=10,
         eval_steps=50,
         save_steps=50,
         save_total_limit=2,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         save_strategy="steps",
-        load_best_model_at_end=True,     
+        load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
+
         bf16=use_bf16,
         fp16=use_fp16,
-        dataloader_num_workers=4,
-        report_to="none",                
+
+        dataloader_num_workers=0,
+        dataset_num_proc=1,
+
+        report_to="none",
         seed=SEED,
+        warmup_steps=10,
     )
 
     trainer = SFTTrainer(
         model=model,
-        tokenizer=tokenizer,
-        train_dataset=load_dataset(
-            "json",
-            data_files={"train": str(TRAIN_FILE)},
-            split="train",
-        ),
-        eval_dataset=load_dataset(
-            "json",
-            data_files={"validation": str(VAL_FILE)},
-            split="validation",
-        ),
+        processing_class=tokenizer,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
         peft_config=lora_config,
         args=training_args,
         formatting_func=formatting_func,
-        max_seq_length=MAX_SEQ_LENGTH,
-        dataset_num_proc=4,              
     )
 
     print("Starting training...")
