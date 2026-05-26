@@ -6,7 +6,7 @@ from transformers import (
 )
 
 
-MODEL_ID = "mistralai/Ministral-3-3B-Instruct-2512"
+MODEL_ID = "ministral/Ministral-3b-instruct"
 
 _tokenizer = None
 _model = None
