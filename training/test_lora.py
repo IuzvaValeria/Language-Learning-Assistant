@@ -1,72 +1,77 @@
 from pathlib import Path
 from datetime import datetime
 import json
-
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
 
-
 BASE_MODEL = "ministral/Ministral-3b-instruct"
 LORA_PATH = Path("models/n5_lora")
 RESULTS_DIR = Path("results/lora_tests")
-
 SYSTEM_PROMPT = (
     "You are a helpful Japanese-English language learning tutor. "
     "Focus on JLPT N5 level. "
     "Explain simply and clearly."
 )
-
 TEST_SETS = {
     "basic": {
         "description": "Basic mixed test: translation, grammar, vocabulary, correction.",
         "questions": [
-            "Translate to Japanese: I eat rice.",
-            "Translate to English: 時間がありません。",
-            "Explain the grammar in this sentence: 私は日本語を勉強します。",
-            "What does 食べる mean? Give reading and example.",
-            "Correct this Japanese sentence: これは本ます。",
+            {"question": "Translate to Japanese: I eat rice.", "expected": "ご飯を食べます。"},
+            {"question": "Translate to English: 時間がありません。", "expected": "I do not have time."},
+            {"question": "Explain the grammar in this sentence: 私は日本語を勉強します。", "expected": "は marks the topic"},
+            {"question": "What does 食べる mean? Give reading and example.", "expected": "to eat"},
+            {"question": "Correct this Japanese sentence: これは本ます。", "expected": "これは本です。"},
         ],
     },
-    "translate": {
-        "description": "Translation test: English to Japanese and Japanese to English.",
+    "translate_en_ja": {
+        "description": "Translation test: English to Japanese.",
         "questions": [
-            "Translate to Japanese: This is a book.",
-            "Translate to Japanese: I go to school.",
-            "Translate to Japanese: I drink tea.",
-            "Translate to English: 私は学生です。",
-            "Translate to English: これは本です。",
+            {"question": "Translate to Japanese: This is a book.", "expected": "これは本です。"},
+            {"question": "Translate to Japanese: I go to school.", "expected": "私は学校に行きます。"},
+            {"question": "Translate to Japanese: I drink tea.", "expected": "私はお茶を飲みます。"},
+            {"question": "Translate to Japanese: I am a student.", "expected": "私は学生です。"},
+            {"question": "Translate to Japanese: I do not have time.", "expected": "時間がありません。"},
+        ],
+    },
+    "translate_ja_en": {
+        "description": "Translation test: Japanese to English.",
+        "questions": [
+            {"question": "Translate to English: 私は学生です。", "expected": "I am a student."},
+            {"question": "Translate to English: これは本です。", "expected": "This is a book."},
+            {"question": "Translate to English: 私は学校に行きます。", "expected": "I go to school."},
+            {"question": "Translate to English: 私はお茶を飲みます。", "expected": "I drink tea."},
+            {"question": "Translate to English: 時間がありません。", "expected": "I do not have time."},
         ],
     },
     "grammar": {
         "description": "Grammar test: particles, polite form, simple sentence structure.",
         "questions": [
-            "Explain the particle は in this sentence: 私は学生です。",
-            "Explain the particle を in this sentence: 水を飲みます。",
-            "Explain why 飲みます is polite and 飲む is plain.",
-            "Explain the grammar in this sentence: 私は学校に行きます。",
+            {"question": "Explain the particle は in this sentence: 私は学生です。", "expected": "topic"},
+            {"question": "Explain the particle を in this sentence: 水を飲みます。", "expected": "object"},
+            {"question": "Explain why 飲みます is polite and 飲む is plain.", "expected": "polite"},
+            {"question": "Explain the grammar in this sentence: 私は学校に行きます。", "expected": "に marks direction"},
         ],
     },
     "vocab": {
         "description": "Vocabulary test: meaning, reading, simple example.",
         "questions": [
-            "What does 学生 mean? Give reading and example.",
-            "What does 水 mean? Give reading and example.",
-            "What does 行く mean? Give reading and example.",
-            "What does 本 mean? Give reading and example.",
+            {"question": "What does 学生 mean? Give reading and example.", "expected": "student"},
+            {"question": "What does 水 mean? Give reading and example.", "expected": "water"},
+            {"question": "What does 行く mean? Give reading and example.", "expected": "to go"},
+            {"question": "What does 本 mean? Give reading and example.", "expected": "book"},
         ],
     },
     "correction": {
         "description": "Correction test: fix simple learner mistakes.",
         "questions": [
-            "Correct this Japanese sentence: 私は水を飲むます。",
-            "Correct this Japanese sentence: 私は学校を行きます。",
-            "Correct this Japanese sentence: これは本ます。",
-            "Correct this Japanese sentence: 私は学生をです。",
+            {"question": "Correct this Japanese sentence: 私は水を飲むます。", "expected": "私は水を飲みます。"},
+            {"question": "Correct this Japanese sentence: 私は学校を行きます。", "expected": "私は学校に行きます。"},
+            {"question": "Correct this Japanese sentence: これは本ます。", "expected": "これは本です。"},
+            {"question": "Correct this Japanese sentence: 私は学生をです。", "expected": "私は学生です。"},
         ],
     },
 }
-
 
 def load_model():
     tokenizer = AutoTokenizer.from_pretrained(
@@ -76,9 +81,7 @@ def load_model():
 
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-
-    tokenizer.padding_side = "right"
-
+    tokenizer.padding_side = "left"
     base_model = AutoModelForCausalLM.from_pretrained(
         BASE_MODEL,
         torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
@@ -95,9 +98,7 @@ def load_model():
 
     model.eval()
     return tokenizer, model
-
-
-def generate(tokenizer, model, user_text):
+def generate(tokenizer, model, user_text, deterministic=True):
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": user_text},
@@ -111,14 +112,22 @@ def generate(tokenizer, model, user_text):
 
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
+    generation_kwargs = {
+        "max_new_tokens": 200,
+        "repetition_penalty": 1.1,
+        "pad_token_id": tokenizer.pad_token_id,
+    }
+
+    if deterministic:
+        generation_kwargs["do_sample"] = False
+    else:
+        generation_kwargs["do_sample"] = True
+        generation_kwargs["temperature"] = 0.3
+
     with torch.no_grad():
         outputs = model.generate(
             **inputs,
-            max_new_tokens=200,
-            temperature=0.3,
-            do_sample=True,
-            repetition_penalty=1.1,
-            pad_token_id=tokenizer.eos_token_id,
+            **generation_kwargs,
         )
 
     input_length = inputs["input_ids"].shape[-1]
@@ -154,7 +163,6 @@ def get_result_paths(test_set_name):
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
     jsonl_path = RESULTS_DIR / f"{test_set_name}_{timestamp}.jsonl"
     md_path = RESULTS_DIR / f"{test_set_name}_{timestamp}.md"
 
@@ -166,12 +174,18 @@ def save_jsonl(path, data):
         file.write(json.dumps(data, ensure_ascii=False) + "\n")
 
 
+def normalize_text(text):
+    return text.lower().strip().replace("。", "").replace(".", "")
+
+
+def is_expected_found(answer, expected):
+    return normalize_text(expected) in normalize_text(answer)
+
+
 def run_test_set(tokenizer, model, test_set_name):
     test_set = TEST_SETS[test_set_name]
     questions = test_set["questions"]
-
     jsonl_path, md_path = get_result_paths(test_set_name)
-
     run_info = {
         "timestamp": datetime.now().isoformat(),
         "test_set": test_set_name,
@@ -180,7 +194,6 @@ def run_test_set(tokenizer, model, test_set_name):
         "lora_path": str(LORA_PATH),
         "lora_exists": LORA_PATH.exists(),
     }
-
     save_jsonl(jsonl_path, {"run_info": run_info})
 
     with md_path.open("w", encoding="utf-8") as file:
@@ -195,18 +208,31 @@ def run_test_set(tokenizer, model, test_set_name):
     print(f"Saving JSONL: {jsonl_path}")
     print(f"Saving Markdown: {md_path}\n")
 
-    for index, question in enumerate(questions, start=1):
+    passed_count = 0
+
+    for index, item in enumerate(questions, start=1):
+        question = item["question"]
+        expected = item["expected"]
+
         print("=" * 60)
         print(f"QUESTION {index}: {question}")
+        print(f"EXPECTED: {expected}")
 
-        answer = generate(tokenizer, model, question)
+        answer = generate(tokenizer, model, question, deterministic=True)
+        passed = is_expected_found(answer, expected)
+
+        if passed:
+            passed_count += 1
 
         print(f"ANSWER:\n{answer}\n")
+        print(f"PASSED: {passed}\n")
 
         result = {
             "index": index,
             "question": question,
+            "expected": expected,
             "answer": answer,
+            "passed": passed,
         }
 
         save_jsonl(jsonl_path, result)
@@ -214,12 +240,34 @@ def run_test_set(tokenizer, model, test_set_name):
         with md_path.open("a", encoding="utf-8") as file:
             file.write(f"## Test {index}\n\n")
             file.write(f"**Question:** {question}\n\n")
+            file.write(f"**Expected:** {expected}\n\n")
+            file.write(f"**Passed:** `{passed}`\n\n")
             file.write("**Answer:**\n\n")
             file.write(answer)
             file.write("\n\n---\n\n")
 
+    total_count = len(questions)
+    accuracy = passed_count / total_count if total_count else 0
+
+    summary = {
+        "summary": {
+            "passed": passed_count,
+            "total": total_count,
+            "accuracy": accuracy,
+        }
+    }
+
+    save_jsonl(jsonl_path, summary)
+
+    with md_path.open("a", encoding="utf-8") as file:
+        file.write("## Summary\n\n")
+        file.write(f"Passed: `{passed_count}` / `{total_count}`\n\n")
+        file.write(f"Accuracy: `{accuracy:.2%}`\n")
+
     print("=" * 60)
     print("Testing finished.")
+    print(f"Passed: {passed_count} / {total_count}")
+    print(f"Accuracy: {accuracy:.2%}")
     print(f"Results saved to: {RESULTS_DIR}")
 
 
@@ -233,11 +281,9 @@ def run_interactive(tokenizer, model):
         if user_input.lower() in ("exit", "quit", "q"):
             print("Exiting.")
             break
-
         if not user_input:
             continue
-
-        answer = generate(tokenizer, model, user_input)
+        answer = generate(tokenizer, model, user_input, deterministic=False)
         print(f"\nTutor:\n{answer}\n")
 
 

@@ -62,7 +62,15 @@ def make_translation_examples(pairs: list, max_examples: int = MAX_TRANSLATION_E
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": f"Translate into simple N5 Japanese: {english}"},
-                {"role": "assistant", "content": f"{japanese}\nMeaning: {english}"},
+                {"role": "assistant", "content": japanese},
+            ]
+        })
+
+        examples.append({
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": f"Translate to English: {japanese}"},
+                {"role": "assistant", "content": english},
             ]
         })
     return examples

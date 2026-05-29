@@ -10,16 +10,12 @@ from transformers import (
 )
 from trl import SFTConfig, SFTTrainer
 
-
 MODEL_NAME = "ministral/Ministral-3b-instruct"
-
 TRAIN_FILE = Path("data/final/train.jsonl")
 VAL_FILE = Path("data/final/val.jsonl")
-OUTPUT_DIR = Path("models/n5_lora")
-
+OUTPUT_DIR = Path("models/n5_lora_v2_translation_fixed")
 MAX_SEQ_LENGTH = 512
 SEED = 42
-
 
 def format_chat_example(example, tokenizer):
     messages = example["messages"]
@@ -32,6 +28,31 @@ def format_chat_example(example, tokenizer):
 
     return text
 
+def print_dataset_stats(dataset, name):
+    counts = {}
+
+    for item in dataset:
+        messages = item["messages"]
+        user_text = messages[1]["content"] if len(messages) > 1 else ""
+
+        if "Translate to Japanese" in user_text:
+            key = "EN_TO_JA"
+        elif "Translate to English" in user_text:
+            key = "JA_TO_EN"
+        elif "particle" in user_text.lower() or "grammar" in user_text.lower():
+            key = "GRAMMAR"
+        elif "word" in user_text.lower() or "meaning" in user_text.lower():
+            key = "VOCAB"
+        elif "correct" in user_text.lower() or "fix" in user_text.lower():
+            key = "CORRECTION"
+        else:
+            key = "OTHER"
+
+        counts[key] = counts.get(key, 0) + 1
+
+    print(f"\n{name} dataset balance:")
+    for key, value in counts.items():
+        print(f"{key}: {value}")
 
 def main():
     if not TRAIN_FILE.exists():
@@ -109,6 +130,8 @@ def main():
         split="validation",
     )
 
+    print_dataset_stats(train_dataset, "Train")
+    print_dataset_stats(eval_dataset, "Validation")
     training_args = SFTConfig(
         output_dir=str(OUTPUT_DIR),
 
@@ -129,10 +152,8 @@ def main():
         save_strategy="steps",
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
-
         bf16=use_bf16,
         fp16=use_fp16,
-
         dataloader_num_workers=0,
         dataset_num_proc=1,
 
@@ -150,16 +171,12 @@ def main():
         args=training_args,
         formatting_func=formatting_func,
     )
-
     print("Starting training...")
     trainer.train()
-
     trainer.model.save_pretrained(OUTPUT_DIR)
     tokenizer.save_pretrained(OUTPUT_DIR)
-
     print(f"LoRA adapter saved to: {OUTPUT_DIR}")
     print(f"To load: model = PeftModel.from_pretrained(base_model, '{OUTPUT_DIR}')")
-
 
 if __name__ == "__main__":
     main()
