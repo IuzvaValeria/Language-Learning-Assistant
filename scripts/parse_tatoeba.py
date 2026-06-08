@@ -8,6 +8,15 @@ OUT_FILE = OUT_DIR / "tatoeba_pairs.jsonl"
 SOURCE_TEXT_IDX = 1
 TARGET_TEXT_IDX = 3
 
+def has_japanese(text: str) -> bool:
+    return any(
+        "\u3040" <= char <= "\u30ff" or "\u4e00" <= char <= "\u9fff"
+        for char in text
+    )
+
+def has_english(text: str) -> bool:
+    return any("a" <= char.lower() <= "z" for char in text)
+
 def read_tsv(file_path: Path, source_lang: str, target_lang: str) -> list:
     pairs = []
 
@@ -26,6 +35,18 @@ def read_tsv(file_path: Path, source_lang: str, target_lang: str) -> list:
             target_text = parts[TARGET_TEXT_IDX].strip()
 
             if not source_text or not target_text:
+                continue
+
+            if source_lang == "en" and not has_english(source_text):
+                continue
+
+            if source_lang == "ja" and not has_japanese(source_text):
+                continue
+
+            if target_lang == "en" and not has_english(target_text):
+                continue
+
+            if target_lang == "ja" and not has_japanese(target_text):
                 continue
 
             pairs.append({

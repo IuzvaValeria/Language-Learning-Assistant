@@ -13,7 +13,7 @@ VAL_FILE = OUT_DIR / "val.jsonl"
 SEED = 42
 TRAIN_SPLIT = 0.9
 MAX_TRANSLATION_EXAMPLES = 8000
-MAX_VOCAB_EXAMPLES = 718   
+MAX_VOCAB_EXAMPLES = 718
 
 SYSTEM_PROMPT = (
     "You are a Japanese tutor for English-speaking JLPT N5 learners. "
@@ -65,13 +65,13 @@ def make_translation_examples(pairs: list, max_examples: int = MAX_TRANSLATION_E
             assistant_content = f"{japanese}\nMeaning: {english}"
         else:
             user_content = f"Translate to English: {japanese}"
-            assistant_content = f"{english}\nMeaning: {japanese}"
+            assistant_content = f"{english}\nOriginal Japanese:: {japanese}"
         
         examples.append({
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_content},
-                {"role": "assistant", "content": assistant_content  },
+                {"role": "assistant", "content": assistant_content},
             ]
         })
 

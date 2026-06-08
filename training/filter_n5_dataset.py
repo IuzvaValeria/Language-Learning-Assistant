@@ -147,6 +147,12 @@ def filter_tatoeba_pairs(n5_words: set, n5_kanji: set, bad_patterns: list) -> li
                 "source": "tatoeba",
             })
 
+    en_ja_count = sum(1 for pair in filtered_pairs if pair["source_lang"] == "en")
+    ja_en_count = sum(1 for pair in filtered_pairs if pair["source_lang"] == "ja")
+
+    print(f"English to Japanese   : {en_ja_count}")
+    print(f"Japanese to English   : {ja_en_count}")
+    
     print(f"Total pairs processed  : {total}")
     print(f"Skipped (wrong lang)   : {skipped_lang}")
     print(f"Skipped (too long)     : {skipped_length}")
