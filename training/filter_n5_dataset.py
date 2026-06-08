@@ -110,29 +110,38 @@ def filter_tatoeba_pairs(n5_words: set, n5_kanji: set, bad_patterns: list) -> li
             source_text = item.get("source_text", "").strip()
             target_text = item.get("target_text", "").strip()
 
-            if source_lang != SOURCE_LANG or target_lang != TARGET_LANG:
+            if (source_lang, target_lang) not in VALID_PAIRS:   
                 skipped_lang += 1
                 continue
 
-            if not is_short_pair(source_text, target_text):
+            if source_lang == "en":
+                english_text = source_text
+                japanese_text = target_text 
+            else:
+                english_text = target_text
+                japanese_text = source_text
+
+            if not is_short_pair(english_text, japanese_text):
                 skipped_length += 1
                 continue
 
-            if not has_n5_word(target_text, n5_words):
+            if not has_n5_word(japanese_text, n5_words):
                 skipped_vocab += 1
                 continue
 
-            if has_bad_pattern(target_text, bad_patterns):
+            if has_bad_pattern(japanese_text, bad_patterns):
                 skipped_grammar += 1
                 continue
 
-            if has_unknown_kanji(target_text, n5_kanji):
+            if has_unknown_kanji(japanese_text, n5_kanji):
                 skipped_kanji += 1
                 continue
 
             filtered_pairs.append({
-                "english": source_text,
-                "japanese": target_text,
+                "english": english_text,
+                "japanese": japanese_text,
+                "source_lang": source_lang,
+                "target_lang": target_lang,
                 "level": "N5",
                 "task": "translation",
                 "source": "tatoeba",

@@ -53,7 +53,6 @@ def deduplicate(pairs: list) -> list:
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Только en → ja
     eng_jpn = read_tsv(RAW_DIR / "eng-jpn.tsv", "en", "ja")
     jpn_eng = read_tsv(RAW_DIR / "jpn-eng.tsv", "ja", "en")
 

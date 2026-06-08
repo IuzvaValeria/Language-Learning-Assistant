@@ -56,23 +56,25 @@ def make_translation_examples(pairs: list, max_examples: int = MAX_TRANSLATION_E
     for pair in shuffled[:max_examples]:
         english = pair.get("english", "").strip()
         japanese = pair.get("japanese", "").strip()
+        source_lang = pair.get("source_lang", "en")
+
         if not english or not japanese:
             continue
+        if source_lang == "en":
+            user_content = f"Translate into simple N5 Japanese: {english}"
+            assistant_content = f"{japanese}\nMeaning: {english}"
+        else:
+            user_content = f"Translate to English: {japanese}"
+            assistant_content = f"{english}\nMeaning: {japanese}"
+        
         examples.append({
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"Translate into simple N5 Japanese: {english}"},
-                {"role": "assistant", "content": japanese},
+                {"role": "user", "content": user_content},
+                {"role": "assistant", "content": assistant_content  },
             ]
         })
 
-        examples.append({
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"Translate to English: {japanese}"},
-                {"role": "assistant", "content": english},
-            ]
-        })
     return examples
 
 def make_vocab_examples(words: list, max_examples: int = MAX_VOCAB_EXAMPLES) -> list:
