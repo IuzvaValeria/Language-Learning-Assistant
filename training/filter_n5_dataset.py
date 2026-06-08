@@ -13,8 +13,7 @@ MAX_JAPANESE_LEN = 25
 MIN_TEXT_LEN = 5
 MIN_N5_WORD_COUNT = 3
 MAX_ENGLISH_WORDS = 6
-SOURCE_LANG = "en"
-TARGET_LANG = "ja"
+VALID_PAIRS = {("en", "ja"), ("ja", "en")}
 
 
 def load_n5_kanji() -> set:

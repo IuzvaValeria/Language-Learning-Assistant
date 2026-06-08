@@ -55,8 +55,9 @@ def main():
 
     # Только en → ja
     eng_jpn = read_tsv(RAW_DIR / "eng-jpn.tsv", "en", "ja")
+    jpn_eng = read_tsv(RAW_DIR / "jpn-eng.tsv", "ja", "en")
 
-    all_pairs = deduplicate(eng_jpn)
+    all_pairs = deduplicate(eng_jpn + jpn_eng)
 
     with OUT_FILE.open("w", encoding="utf-8") as file:
         for item in all_pairs:
