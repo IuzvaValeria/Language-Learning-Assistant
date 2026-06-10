@@ -47,3 +47,9 @@ tempCodeRunnerFile.py
 #archives
 *.zip
 results/
+# KFTT dataset - tested but not used for final training
+data/raw/kftt/
+data/processed/kftt_*.jsonl
+data/raw/n4_kanji.txt
+scripts/parse_kftt.py
+training/filter_kftt_dataset.py
