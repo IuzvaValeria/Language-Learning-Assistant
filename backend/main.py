@@ -9,7 +9,10 @@ async def lifespan(app: FastAPI):
     load_model()
     yield
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="Japanese Learning Assistant API",
+    lifespan=lifespan,
+)
 
 class AskRequest(BaseModel):
     mode: str
