@@ -53,3 +53,5 @@ data/processed/kftt_*.jsonl
 data/raw/n4_kanji.txt
 scripts/parse_kftt.py
 training/filter_kftt_dataset.py
+#configs not used in the final version
+configs/
