@@ -47,11 +47,16 @@ tempCodeRunnerFile.py
 #archives
 *.zip
 results/
-# KFTT dataset - tested but not used for final training
+#KFTT dataset - tested but not used for final training
 data/raw/kftt/
 data/processed/kftt_*.jsonl
 data/raw/n4_kanji.txt
 scripts/parse_kftt.py
 training/filter_kftt_dataset.py
+#JESC dataset - tested but not used for final training
+data/raw/jesc/
+data/processed/jesc_*.jsonl
+scripts/parse_jesc.py
+training/filter_jesc_dataset.py
 #configs not used in the final version
 configs/

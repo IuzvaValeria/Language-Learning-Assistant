@@ -5,6 +5,7 @@ import random
 TRANSLATION_FILE = Path("data/processed/n5_translation.jsonl")
 VOCAB_FILE = Path("data/processed/n5_vocab.jsonl")
 JMDICT_FILE = Path("data/processed/jmdict_words.jsonl")
+GRAMMAR_FILE = Path("data/processed/n5_grammar.jsonl")
 
 OUT_DIR = Path("data/final")
 TRAIN_FILE = OUT_DIR / "train.jsonl"
@@ -49,6 +50,21 @@ def filter_jmdict_by_n5(jmdict_words: list, n5_words: list) -> list:
             filtered.append(entry)
     return filtered
 
+def is_chat_example(item: dict) -> bool:
+    messages = item.get("messages")
+    if not isinstance(messages, list):
+        return False
+    if len(messages) != 3:
+        return False
+    roles = [message.get("role") for message in messages]
+    if roles != ["system", "user", "assistant"]:
+        return False
+    for message in messages:
+        content = message.get("content", "").strip()
+        if not content:
+            return False
+    return True
+
 def make_translation_examples(pairs: list, max_examples: int = MAX_TRANSLATION_EXAMPLES) -> list:
     examples = []
     shuffled = pairs.copy()
@@ -65,7 +81,7 @@ def make_translation_examples(pairs: list, max_examples: int = MAX_TRANSLATION_E
             assistant_content = f"{japanese}\nMeaning: {english}"
         else:
             user_content = f"Translate to English: {japanese}"
-            assistant_content = f"{english}\nOriginal Japanese:: {japanese}"
+            assistant_content = f"{english}\nOriginal Japanese: {japanese}"
         
         examples.append({
             "messages": [
@@ -112,19 +128,22 @@ def main():
     translation_pairs = load_jsonl(TRANSLATION_FILE)
     n5_vocab_words = load_jsonl(VOCAB_FILE)
     jmdict_words = load_jsonl(JMDICT_FILE)
+    grammar_examples_raw = load_jsonl(GRAMMAR_FILE)
+    grammar_examples = [item for item in grammar_examples_raw if is_chat_example(item)]
 
     jmdict_n5 = filter_jmdict_by_n5(jmdict_words, n5_vocab_words)
-    vocab_words = n5_vocab_words #wasvocab_words = n5_vocab_words + jmdict_n5 but will be added later 
+    vocab_words = n5_vocab_words #vocab_words = n5_vocab_words + jmdict_n5 but will be added later 
 
     print(f"Loaded translation pairs : {len(translation_pairs)}")
     print(f"Loaded N5 vocab words    : {len(n5_vocab_words)}")
     print(f"Loaded JMdict N5 words   : {len(jmdict_n5)}")
     print(f"Total vocab words        : {len(vocab_words)}")
+    print(f"Loaded grammar examples  : {len(grammar_examples)}")
 
     translation_examples = make_translation_examples(translation_pairs)
     vocab_examples = make_vocab_examples(vocab_words)
 
-    all_examples = translation_examples + vocab_examples
+    all_examples = translation_examples + vocab_examples + grammar_examples
     random.shuffle(all_examples)
 
     split_index = int(len(all_examples) * TRAIN_SPLIT)
@@ -136,6 +155,7 @@ def main():
 
     print(f"\nTranslation examples : {len(translation_examples)}")
     print(f"Vocabulary examples  : {len(vocab_examples)}")
+    print(f"Grammar examples     : {len(grammar_examples)}")
     print(f"Total examples       : {len(all_examples)}")
     print(f"Train examples       : {len(train_examples)}")
     print(f"Validation examples  : {len(val_examples)}")

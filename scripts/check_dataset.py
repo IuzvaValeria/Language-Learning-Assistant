@@ -14,7 +14,7 @@ def check_file(file_path: Path) -> None:
     total = 0
     errors = 0
     too_long = 0
-    task_types = {"translation": 0, "vocab": 0, "unknown": 0}
+    task_types = {"translation": 0, "vocab": 0, "grammar": 0, "unknown": 0}
 
     expected_roles = ["system", "user", "assistant"]
 
@@ -63,10 +63,24 @@ def check_file(file_path: Path) -> None:
                 too_long += 1
 
             user_content = messages[1].get("content", "")
-            if "Translate" in user_content:
+            user_lower = user_content.lower()
+
+            if "translate" in user_lower:
                 task_types["translation"] += 1
-            elif "Explain" in user_content:
+            elif "explain the n5 word" in user_lower:
                 task_types["vocab"] += 1
+            elif any(
+                keyword  in user_lower
+                for keyword in [
+                    "explain",
+                    "how do i",
+                    "what does", 
+                    "what is", 
+                    "when do", 
+                    "when should"
+                ]
+            ):
+                task_types["grammar"] += 1
             else:
                 task_types["unknown"] += 1
 
@@ -76,6 +90,7 @@ def check_file(file_path: Path) -> None:
     print(f"  Too long (>{MAX_CONTENT_CHARS} chars): {too_long}")
     print(f"  Translation    : {task_types['translation']}")
     print(f"  Vocab          : {task_types['vocab']}")
+    print(f"  Grammar        : {task_types['grammar']}")
     print(f"  Unknown        : {task_types['unknown']}")
 
 def main():
