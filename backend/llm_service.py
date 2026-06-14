@@ -1,24 +1,31 @@
 import os
 from pathlib import Path
+
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 from backend.prompts import load_full_prompt
 
-USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
+
+USE_MOCK = os.getenv("USE_MOCK", "false").lower() == "true"
 BASE_MODEL = os.getenv("BASE_MODEL", "ministral/Ministral-3b-instruct")
 LORA_PATH = Path(os.getenv("LORA_PATH", "models/n5_lora_v4_translation_vocab_grammar"))
 MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "150"))
 
 tokenizer = None
 model = None
+
+
 def load_model() -> None:
     global tokenizer, model
+
     if USE_MOCK:
         print("Mock backend model loaded")
         return
 
     print(f"Loading base model: {BASE_MODEL}")
+
     tokenizer = AutoTokenizer.from_pretrained(
         BASE_MODEL,
         trust_remote_code=True,
@@ -51,22 +58,30 @@ def generate_mock_response(mode: str, user_text: str) -> str:
     system_prompt = load_full_prompt(mode)
 
     return f"""[MOCK BACKEND RESP]
+
 Mode:
 {mode}
+
 Input:
 {user_text}
+
 Prompt preview:
 {system_prompt[:500]}
+
 Example answer:
 This is a mock response. Later it will be replaced by the fine-tuned LoRA model.
 """.strip()
 
+
 def generate_response(mode: str, user_text: str) -> str:
     if USE_MOCK:
         return generate_mock_response(mode, user_text)
+
     if tokenizer is None or model is None:
         raise RuntimeError("Model is not loaded. Call load_model() first.")
+
     system_prompt = load_full_prompt(mode)
+
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_text},
@@ -77,7 +92,9 @@ def generate_response(mode: str, user_text: str) -> str:
         tokenize=False,
         add_generation_prompt=True,
     )
+
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+
     generation_kwargs = {
         "max_new_tokens": MAX_NEW_TOKENS,
         "do_sample": False,
