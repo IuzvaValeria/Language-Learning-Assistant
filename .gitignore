@@ -46,7 +46,7 @@ data/final/
 tempCodeRunnerFile.py
 #archives
 *.zip
-results/
+
 #KFTT dataset - tested but not used for final training
 data/raw/kftt/
 data/processed/kftt_*.jsonl
