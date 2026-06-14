@@ -4,10 +4,8 @@ PROMPTS_DIR = Path(__file__).resolve().parent.parent / "prompts"
 
 AVAILABLE_MODES = {
     "translation": "translation_prompt.txt",
-    "grammar": "grammar_prompt.txt",
-    "correction": "correction_prompt.txt",
-    "exercise": "exercise_prompt.txt",
-    "chat": "system_n5.txt"
+    "vocabulary": "vocabulary_prompt.txt",
+    "chat": "system_n5.txt",
 }
 
 FEW_SHOT_FILE = PROMPTS_DIR / "few_shot_examples.md"

@@ -140,11 +140,48 @@ def normalize(text: str) -> str:
         .replace("?", "")
     )
 
-def is_correct(answer: str, expected: str) -> bool:
+def is_correct(answer: str, item: dict, set_name: str) -> bool:
     normalized_answer = normalize(answer)
-    normalized_expected = normalize(expected)
 
-    return normalized_expected in normalized_answer
+    if set_name == "translation_en_ja":
+        expected_answers = item.get("expected", [])
+        return any(normalize(expected) in normalized_answer for expected in expected_answers)
+
+    if set_name == "translation_ja_en":
+        expected_answers = item.get("expected", [])
+        return any(normalize(expected) in normalized_answer for expected in expected_answers)
+
+    if set_name == "vocabulary":
+        meanings = item.get("expected_meaning", [])
+        readings = item.get("expected_reading", [])
+
+        has_meaning = any(normalize(meaning) in normalized_answer for meaning in meanings)
+        has_reading = any(normalize(reading) in normalized_answer for reading in readings)
+
+        return has_meaning and has_reading
+
+    if set_name == "grammar":
+        required_keywords = item.get("required_keywords", [])
+        return all(normalize(keyword) in normalized_answer for keyword in required_keywords)
+
+    return False
+
+def get_expected_display(item: dict) -> dict:
+    if "expected" in item:
+        return {"expected": item["expected"]}
+
+    expected_display = {}
+
+    if "expected_meaning" in item:
+        expected_display["expected_meaning"] = item["expected_meaning"]
+
+    if "expected_reading" in item:
+        expected_display["expected_reading"] = item["expected_reading"]
+
+    if "required_keywords" in item:
+        expected_display["required_keywords"] = item["required_keywords"]
+
+    return expected_display
 
 def run_evaluation(tokenizer, model, label: str) -> dict:
     print(f"\n--- EVALUATING: {label} ---")
@@ -160,7 +197,6 @@ def run_evaluation(tokenizer, model, label: str) -> dict:
 
         for index, item in enumerate(questions, start=1):
             question = item["question"]
-            expected = item["expected"]
 
             print(f"  Question {index}/{len(questions)}")
 
@@ -172,7 +208,8 @@ def run_evaluation(tokenizer, model, label: str) -> dict:
 
             correct = is_correct(
                 answer=answer,
-                expected=expected,
+                item=item,
+                set_name=set_name,
             )
 
             if correct:
@@ -181,7 +218,7 @@ def run_evaluation(tokenizer, model, label: str) -> dict:
             task_results.append(
                 {
                     "question": question,
-                    "expected": expected,
+                    "expected": get_expected_display(item),
                     "answer": answer,
                     "correct": correct,
                 }

@@ -43,8 +43,6 @@ def print_dataset_stats(dataset, name):
             key = "GRAMMAR"
         elif "word" in user_text.lower() or "meaning" in user_text.lower():
             key = "VOCAB"
-        elif "correct" in user_text.lower() or "fix" in user_text.lower():
-            key = "CORRECTION"
         else:
             key = "OTHER"
 

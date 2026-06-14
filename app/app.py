@@ -6,7 +6,9 @@ API_URL = "http://127.0.0.1:8000/ask"
 st.set_page_config(page_title="Japanese Tutor", page_icon="日本語")
 
 st.title("Japanese Learning Assistant")
-st.write("Beginner-friendly Japanese assistant for translation, grammar, correction, exercises, and chat.")
+st.write("Beginner-friendly Japanese assistant for JLPT N5 translation, vocabulary support, and simple chat practice.")
+
+["translation", "vocabulary", "chat"]
 
 mode = st.sidebar.selectbox(
     "Choose mode",

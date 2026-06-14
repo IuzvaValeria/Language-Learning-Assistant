@@ -7,7 +7,7 @@ from backend.prompts import load_full_prompt
 
 USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
 BASE_MODEL = os.getenv("BASE_MODEL", "ministral/Ministral-3b-instruct")
-LORA_PATH = Path(os.getenv("LORA_PATH", "models/n5_lora_v3_translation_both"))
+LORA_PATH = Path(os.getenv("LORA_PATH", "models/n5_lora_v4_translation_vocab_grammar"))
 MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "150"))
 
 tokenizer = None

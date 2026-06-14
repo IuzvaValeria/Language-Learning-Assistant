@@ -14,16 +14,6 @@ SYSTEM_PROMPT = (
     "Explain simply and clearly."
 )
 TEST_SETS = {
-    "basic": {
-        "description": "Basic mixed test: translation, grammar, vocabulary, correction.",
-        "questions": [
-            {"question": "Translate to Japanese: I eat rice.", "expected": "ご飯を食べます。"},
-            {"question": "Translate to English: 時間がありません。", "expected": "I do not have time."},
-            {"question": "Explain the grammar in this sentence: 私は日本語を勉強します。", "expected": "は marks the topic"},
-            {"question": "What does 食べる mean? Give reading and example.", "expected": "to eat"},
-            {"question": "Correct this Japanese sentence: これは本ます。", "expected": "これは本です。"},
-        ],
-    },
     "translate_en_ja": {
         "description": "Translation test: English to Japanese.",
         "questions": [
@@ -44,15 +34,6 @@ TEST_SETS = {
             {"question": "Translate to English: 時間がありません。", "expected": "I do not have time."},
         ],
     },
-    "grammar": {
-        "description": "Grammar test: particles, polite form, simple sentence structure.",
-        "questions": [
-            {"question": "Explain the particle は in this sentence: 私は学生です。", "expected": "topic"},
-            {"question": "Explain the particle を in this sentence: 水を飲みます。", "expected": "object"},
-            {"question": "Explain why 飲みます is polite and 飲む is plain.", "expected": "polite"},
-            {"question": "Explain the grammar in this sentence: 私は学校に行きます。", "expected": "に marks direction"},
-        ],
-    },
     "vocab": {
         "description": "Vocabulary test: meaning, reading, simple example.",
         "questions": [
@@ -62,13 +43,13 @@ TEST_SETS = {
             {"question": "What does 本 mean? Give reading and example.", "expected": "book"},
         ],
     },
-    "correction": {
-        "description": "Correction test: fix simple learner mistakes.",
+    "grammar_diagnostic": {
+        "description": "Diagnostic grammar test: particles, polite form, simple sentence structure. This is a limitation diagnostic, not a final success metric.",
         "questions": [
-            {"question": "Correct this Japanese sentence: 私は水を飲むます。", "expected": "私は水を飲みます。"},
-            {"question": "Correct this Japanese sentence: 私は学校を行きます。", "expected": "私は学校に行きます。"},
-            {"question": "Correct this Japanese sentence: これは本ます。", "expected": "これは本です。"},
-            {"question": "Correct this Japanese sentence: 私は学生をです。", "expected": "私は学生です。"},
+            {"question": "Explain the particle は in this sentence: 私は学生です。", "expected": "topic"},
+            {"question": "Explain the particle を in this sentence: 水を飲みます。", "expected": "object"},
+            {"question": "Explain why 飲みます is polite and 飲む is plain.", "expected": "polite"},
+            {"question": "Explain the grammar in this sentence: 私は学校に行きます。", "expected": "に marks direction"},
         ],
     },
 }
@@ -147,14 +128,14 @@ def choose_test_set():
     choice = input("Enter number: ").strip()
 
     if not choice.isdigit():
-        print("Invalid choice, using basic.")
-        return "basic"
+        print("Invalid choice, using translate_en_ja.")
+        return "translate_en_ja"
 
     index = int(choice) - 1
 
     if index < 0 or index >= len(names):
-        print("Invalid choice, using basic.")
-        return "basic"
+        print("Invalid choice, using translate_en_ja.")
+        return "translate_en_ja"
 
     return names[index]
 
@@ -202,6 +183,8 @@ def run_test_set(tokenizer, model, test_set_name):
         file.write(f"**Base model:** `{BASE_MODEL}`\n\n")
         file.write(f"**LoRA path:** `{LORA_PATH}`\n\n")
         file.write(f"**LoRA exists:** `{LORA_PATH.exists()}`\n\n")
+        if test_set_name == "grammar_diagnostic":
+            file.write("**Note:** This grammar set is diagnostic only and should not be used as a final success metric.\n\n")
         file.write("---\n\n")
 
     print(f"\nRunning test set: {test_set_name}")
@@ -261,11 +244,15 @@ def run_test_set(tokenizer, model, test_set_name):
 
     with md_path.open("a", encoding="utf-8") as file:
         file.write("## Summary\n\n")
+        if test_set_name == "grammar_diagnostic":
+            file.write("This grammar result is diagnostic only and should be reported as a limitation, not as a final success metric.\n\n")
         file.write(f"Passed: `{passed_count}` / `{total_count}`\n\n")
         file.write(f"Accuracy: `{accuracy:.2%}`\n")
 
     print("=" * 60)
     print("Testing finished.")
+    if test_set_name == "grammar_diagnostic":
+        print("Note: grammar_diagnostic is diagnostic only, not a final success metric.")
     print(f"Passed: {passed_count} / {total_count}")
     print(f"Accuracy: {accuracy:.2%}")
     print(f"Results saved to: {RESULTS_DIR}")
@@ -303,5 +290,5 @@ if __name__ == "__main__":
     elif mode == "2":
         run_interactive(tokenizer, model)
     else:
-        print("Invalid choice, running basic test.")
-        run_test_set(tokenizer, model, "basic")
+        print("Invalid choice, running translate_en_ja test.")
+        run_test_set(tokenizer, model, "translate_en_ja")
