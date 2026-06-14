@@ -1,62 +1,83 @@
-#py cache
+# Python cache
 __pycache__/
 *.py[cod]
-#virt environments
+
+# Virtual environments
 venv/
 .venv/
 .venv311/
 env/
-#env var-s and tss secrets
+
+# Environment variables and secrets
 .env
 .envrc
-#Jupyter
+
+# Jupyter
 .ipynb_checkpoints/
-#test+cache files
+
+# Test and cache files
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .cache/
-#logs
+
+# Logs
 *.log
 logs/
 wandb/
-#local db
+
+# Local database
 *.sqlite3
 db.sqlite3
 db.sqlite3-journal
-#model files and outputs
-models/
+
+# Model files and outputs
+models/*
+!models/n5_lora_v4_translation_vocab_grammar/
+!models/n5_lora_v4_translation_vocab_grammar/**
+
 outputs/
 adapter/
 checkpoints/
+
 *.bin
 *.pt
 *.pth
 *.safetensors
 *.gguf
-#datasets
+
+!models/n5_lora_v4_translation_vocab_grammar/
+!models/n5_lora_v4_translation_vocab_grammar/**
+
+# Datasets
 data/raw/
 data/processed/
 data/final/
-#OS/edit
+
+# OS and editor files
 .vscode/
 .idea/
 .vs/
 .DS_Store
 tempCodeRunnerFile.py
-#archives
+
+# Archives
 *.zip
 
-#KFTT dataset - tested but not used for final training
+# KFTT dataset - tested but not used for final training
 data/raw/kftt/
 data/processed/kftt_*.jsonl
 data/raw/n4_kanji.txt
 scripts/parse_kftt.py
 training/filter_kftt_dataset.py
-#JESC dataset - tested but not used for final training
+
+# JESC dataset - tested but not used for final training
 data/raw/jesc/
 data/processed/jesc_*.jsonl
 scripts/parse_jesc.py
 training/filter_jesc_dataset.py
-#configs not used in the final version
+
+# Configs not used in the final version
 configs/
+
+models/n5_lora_v4_translation_vocab_grammar/checkpoint-*/
