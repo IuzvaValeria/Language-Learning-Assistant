@@ -11,7 +11,7 @@ from backend.prompts import load_full_prompt
 USE_MOCK = os.getenv("USE_MOCK", "false").lower() == "true"
 BASE_MODEL = os.getenv("BASE_MODEL", "ministral/Ministral-3b-instruct")
 LORA_PATH = Path(os.getenv("LORA_PATH", "models/n5_lora_v4_translation_vocab_grammar"))
-MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "150"))
+MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "50"))
 
 tokenizer = None
 model = None
@@ -47,8 +47,7 @@ def load_model() -> None:
         model = PeftModel.from_pretrained(base_model, LORA_PATH)
         print(f"LoRA adapter loaded from: {LORA_PATH}")
     else:
-        model = base_model
-        print(f"No LoRA adapter found at {LORA_PATH}, using base model")
+        raise FileNotFoundError(f"LoRA adapter not found: {LORA_PATH}")
 
     model.eval()
     print("Model loaded successfully")
@@ -82,16 +81,13 @@ def generate_response(mode: str, user_text: str) -> str:
 
     system_prompt = load_full_prompt(mode)
 
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_text},
-    ]
+    prompt = f"""{system_prompt}
 
-    prompt = tokenizer.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True,
-    )
+Input:
+{user_text}
+
+Output:
+"""
 
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
@@ -100,6 +96,7 @@ def generate_response(mode: str, user_text: str) -> str:
         "do_sample": False,
         "repetition_penalty": 1.1,
         "pad_token_id": tokenizer.pad_token_id,
+        "eos_token_id": tokenizer.eos_token_id,
     }
 
     with torch.no_grad():

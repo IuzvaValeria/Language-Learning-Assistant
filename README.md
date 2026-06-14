@@ -1,33 +1,28 @@
-#Language Learning Assistant for Japanese Learning
+# Language Learning Assistant for Japanese Learning
 
-##This project is a lightweight Japanese-English language learning assistant based on a fine-tuned large language model.
-The assistant is designed for beginner Japanese learners, especially around JLPT N5 level. It can help with simple translation, vocabulary explanation, grammar-related questions, and short practice interaction.
+This project is a lightweight Japanese-English language learning assistant based on a fine-tuned large language model.
 
-The project uses a pretrained instruction model and adapts it with LoRA fine-tuning on a filtered educational dataset.
+The assistant is designed for beginner Japanese learners, especially around JLPT N5 level. It supports simple translation, vocabulary explanation, and short beginner-level interaction. The project uses a pretrained instruction model and adapts it with LoRA fine-tuning on a filtered educational dataset.
 
-Main goal
+The goal is not to build a full professional translator. The goal is to create a small educational assistant that gives more consistent beginner-level responses than the original base model.
 
-The goal of the project is not to build a full professional translator.
-
-The goal is to create a small educational assistant that gives more consistent beginner-level responses than the original base model.
-
-Features
+## Features
 
 Current supported functionality:
 
-- English to Japanese translation
-- Japanese to English translation
-- Vocabulary explanation
-- Basic grammar-related interaction
-- Simple chat practice
-- FastAPI backend
-- Streamlit frontend
-- Base model vs LoRA model evaluation
+* English to Japanese translation
+* Japanese to English translation
+* Vocabulary explanation
+* Simple chat practice
+* FastAPI backend
+* Streamlit frontend
+* Base model vs LoRA model evaluation
 
-Grammar explanation is included as a planned direction, but the final LoRA model did not improve reliably on grammar because the grammar dataset was too small.
+Grammar explanation was part of the project scope, but the final model did not improve reliably on grammar because the grammar dataset was too small. Exercise generation and correction are not presented as final supported features.
 
-Project structure
+## Project Structure
 
+```text
 Language-Learning-Assistant/
 │
 ├── backend/
@@ -35,17 +30,18 @@ Language-Learning-Assistant/
 │   ├── llm_service.py
 │   └── prompts.py
 │
-├── frontend/
+├── app/
 │   └── app.py
 │
+├── prompts/
+│   ├── translation_prompt.txt
+│   ├── vocab_prompt.txt
+│   └── system_n5.txt
+│
 ├── training/
-│   ├── parse_tatoeba.py
-│   ├── parse_n5_vocab.py
 │   ├── filter_n5_dataset.py
 │   ├── prepare_dataset.py
-│   ├── check_dataset.py
-│   ├── train_lora.py
-│   └── evaluate.py
+│   └── train_lora.py
 │
 ├── data/
 │   ├── raw/
@@ -53,85 +49,98 @@ Language-Learning-Assistant/
 │   └── final/
 │
 ├── models/
-│   └── n5_lora_v4_translation_vocab_grammar/
-│
-├── results/
-│   └── lora_tests/
+│   └── n5_lora_v2_translation_vocab_grammar/
 │
 ├── requirements.txt
 └── README.md
+```
 
-Some folders such as "data/", "models/", and "results/" may be ignored by Git because they can contain large files.
+Some folders such as `data/`, `models/`, and `results/` may be ignored by Git because they can contain large files. They may need to be generated locally or provided separately.
 
-Technologies
+## Technologies
 
 The project uses:
 
-- Python
-- PyTorch
-- Hugging Face Transformers
-- Hugging Face Datasets
-- PEFT LoRA
-- TRL SFTTrainer
-- bitsandbytes
-- FastAPI
-- Uvicorn
-- Streamlit
-- requests
-- python-dotenv
+* Python
+* PyTorch
+* Hugging Face Transformers
+* Hugging Face Datasets
+* PEFT LoRA
+* TRL SFTTrainer
+* bitsandbytes
+* FastAPI
+* Uvicorn
+* Streamlit
+* requests
+* python-dotenv
 
-Dataset
+## Dataset
 
 The final dataset was created from beginner-oriented Japanese-English resources.
 
 Main data sources:
 
-- Tatoeba sentence pairs
-- JLPT N5 vocabulary list
-- JLPT N5 kanji list
-- Small project-prepared grammar examples
+* Tatoeba sentence pairs
+* JLPT N5 vocabulary list
+* JLPT N5 kanji list
+* Small project-prepared grammar examples
 
-Other datasets were considered but excluded from final training because they were too advanced, noisy, or too small after filtering.
+Other datasets were considered but excluded from final training because they were too advanced, noisy, or too small after filtering:
 
-Excluded or not used in final training:
-
-- KFTT
-- JESC
-- TED Talks
-- Lang-8
-- JMdict as a live dictionary component
+* KFTT
+* JESC
+* TED Talks
+* Lang-8
+* JMdict as a live dictionary component
 
 The final dataset was saved in JSONL format and used for supervised fine-tuning.
 
 Final dataset split:
 
+```text
 Training examples: 7,944
 Validation examples: 883
+```
 
 Task distribution:
 
+```text
 Translation: 7,192 training examples
 Vocabulary: 653 training examples
 Grammar: 99 training examples
+```
 
-Model
+The dataset is intentionally dominated by translation because translation was the main target capability and the most reliable source of high-quality data.
+
+## Model
 
 Base model:
 
+```text
 ministral/Ministral-3b-instruct
+```
 
 Fine-tuning method:
 
+```text
 LoRA
+```
 
-LoRA was used because it allows adapting a large pretrained model while training only a small number of additional parameters.
+The model is a transformer-based causal language model. It was not trained from scratch. Instead, LoRA was used to adapt the pretrained instruction model with a smaller number of trainable parameters.
 
-This makes the project practical for local hardware.
+Current LoRA adapter path used for application inference:
 
-Training setup
+```text
+models/n5_lora_v2_translation_vocab_grammar/
+```
+
+If another adapter version is used, update `LORA_PATH` in `backend/llm_service.py` or set it through an environment variable.
+
+## Training Setup
 
 Main training settings:
 
+```text
 Maximum sequence length: 512
 Epochs: 3
 Batch size per device: 1
@@ -142,140 +151,322 @@ LoRA rank: 16
 LoRA alpha: 32
 LoRA dropout: 0.05
 Quantization: 4-bit bitsandbytes
+```
 
-The project was developed and executed inside a Python virtual environment ("venv") to isolate project dependencies from the system Python installation.
+Training requires a CUDA-compatible NVIDIA GPU.
 
-Installation
+## Installation
 
 Create and activate a virtual environment.
 
 Windows PowerShell:
 
-python -m venv .venv
-.venv\Scripts\activate
+```powershell
+python -m venv .venv311
+.\.venv311\Scripts\activate
+```
 
 Install dependencies:
 
+```powershell
 pip install -r requirements.txt
+```
 
-Dataset preparation
+Optional: check whether CUDA is available:
 
-Run preprocessing scripts in order.
+```powershell
+python -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'NO CUDA')"
+```
 
-python training/parse_tatoeba.py
-python training/parse_n5_vocab.py
-python training/filter_n5_dataset.py
-python training/prepare_dataset.py
-python training/check_dataset.py
+Expected output should show `True` and the NVIDIA GPU name.
 
-The final files should be created in:
+## Environment Configuration
 
-data/final/train.jsonl
-data/final/val.jsonl
+The backend is configured in `backend/llm_service.py`.
 
-Training LoRA
+Important values:
 
-Run:
+```python
+USE_MOCK = os.getenv("USE_MOCK", "false").lower() == "true"
+BASE_MODEL = os.getenv("BASE_MODEL", "ministral/Ministral-3b-instruct")
+LORA_PATH = Path(os.getenv("LORA_PATH", "models/n5_lora_v2_translation_vocab_grammar"))
+MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "50"))
+```
 
-python training/train_lora.py
+For real model inference, mock mode must be disabled:
 
-The trained LoRA adapter will be saved to:
+```text
+USE_MOCK=false
+```
 
-models/n5_lora_v4_translation_vocab_grammar/
+The backend should print:
 
-Training requires a CUDA-compatible NVIDIA GPU.
+```text
+Loading base model: ministral/Ministral-3b-instruct
+LoRA adapter loaded from: models\n5_lora_v2_translation_vocab_grammar
+Model loaded successfully
+Application startup complete.
+```
 
-Evaluation
+If the LoRA adapter path is wrong, the application should not be considered a test of the fine-tuned model.
 
-Run:
+## Running the Application
 
-python training/evaluate.py
+The project uses two processes:
 
-The evaluation compares the base model and the LoRA-adapted model on fixed test prompts.
+1. FastAPI backend
+2. Streamlit frontend
 
-The results are saved to:
+### Step 1. Start the Backend
 
-results/lora_tests/
+Open the first terminal in the project root:
 
-Evaluation result:
+```powershell
+cd D:\Work\Code\repos\llm
+.\.venv311\Scripts\activate
+uvicorn backend.main:app
+```
 
-Base model: 4/20, 20%
-LoRA model: 15/20, 75%
+Do not close this terminal.
 
-Important note:
+The backend runs at:
 
-The evaluation uses keyword-based matching. This means that 100% accuracy on a small task does not mean perfect translation quality. It only means that the expected keyword or phrase was found in the model output.
-
-Run backend
-
-Start the FastAPI backend:
-
-uvicorn backend.main:app --reload
-
-The backend will run at:
-
+```text
 http://127.0.0.1:8000
+```
 
 Available endpoints:
 
+```text
 GET  /
 GET  /modes
 POST /ask
+```
 
-Example request body for "/ask":
+Example backend request body:
 
+```json
 {
   "mode": "translation",
   "text": "Translate to Japanese: I drink water."
 }
+```
 
-Run frontend
+Do not use `--reload` for normal model testing because it may reload the model unnecessarily.
 
-In a second terminal, activate the same virtual environment and run:
+### Step 2. Start the Frontend
 
-streamlit run frontend/app.py
+Open a second terminal in the project root:
 
-The Streamlit interface will open in the browser.
+```powershell
+cd D:\Work\Code\repos\llm
+.\.venv311\Scripts\activate
+streamlit run app/app.py
+```
 
-How the system works
+The frontend opens at:
 
-Basic pipeline:
+```text
+http://localhost:8501
+```
 
-Raw datasets
-→ parsing
-→ filtering
-→ instruction-style JSONL dataset
-→ dataset validation with check_dataset.py
-→ LoRA fine-tuning
-→ evaluation
-→ FastAPI backend
-→ Streamlit frontend
+## How to Ask the Model
 
-Limitations
+Use short and direct prompts. The model performs best when the task is explicit.
+
+Recommended translation format:
+
+```text
+Translate to Japanese: I drink water.
+```
+
+```text
+Translate to Japanese: This is a book.
+```
+
+```text
+Translate to English: 私は学生です。
+```
+
+Recommended vocabulary format:
+
+```text
+Explain the N5 word: 水
+```
+
+```text
+Explain the N5 word: 学生
+```
+
+Recommended chat format:
+
+```text
+Hello. I am learning Japanese.
+```
+
+Avoid vague prompts such as:
+
+```text
+table
+```
+
+or overly informal task names such as:
+
+```text
+translate to N5 simple japanese: ...
+```
+
+The model is more stable with the format used in the project prompts:
+
+```text
+Translate to Japanese: ...
+Translate to English: ...
+Explain the N5 word: ...
+```
+
+## Quick Manual Test Cases
+
+Use these examples to check whether the application is running correctly.
+
+### Translation Test 1
+
+Input:
+
+```text
+Translate to Japanese: This is a book.
+```
+
+Expected output:
+
+```text
+これは本です。
+```
+
+### Translation Test 2
+
+Input:
+
+```text
+Translate to Japanese: I drink water.
+```
+
+Expected output:
+
+```text
+私は水を飲みます。
+```
+
+### Translation Test 3
+
+Input:
+
+```text
+Translate to English: 私は学生です。
+```
+
+Expected output:
+
+```text
+I am a student.
+```
+
+### Vocabulary Test 1
+
+Input:
+
+```text
+Explain the N5 word: 水
+```
+
+Expected output should mention:
+
+```text
+Meaning: water
+Reading: みず
+```
+
+### Vocabulary Test 2
+
+Input:
+
+```text
+Explain the N5 word: 学生
+```
+
+Expected output should mention:
+
+```text
+Meaning: student
+Reading: がくせい
+```
+
+## Important Runtime Notes
+
+The model may take time to load at backend startup. A startup time of one or two minutes can happen depending on hardware, GPU memory, and whether files are already cached.
+
+If the terminal shows:
+
+```text
+Some parameters are on the meta device because they were offloaded to the cpu.
+```
+
+then part of the model is being offloaded, and inference may be slow.
+
+If port `8000` is already in use, stop the old backend process or run:
+
+```powershell
+netstat -ano | findstr :8000
+taskkill /PID PID_NUMBER /F
+```
+
+Then start the backend again:
+
+```powershell
+uvicorn backend.main:app
+```
+
+## Evaluation
+
+The evaluation compares the base model and the LoRA-adapted model on fixed prompts.
+
+Reported keyword-based evaluation result:
+
+```text
+Base model: 4/20, 20%
+LoRA model: 15/20, 75%
+```
+
+The evaluation uses keyword-based matching. This means that a correct score does not necessarily indicate perfect translation quality. Valid paraphrases may be marked wrong, and weak answers may pass if they contain the expected keyword.
+
+The final evaluated capabilities are translation and vocabulary. Grammar explanation remains a limitation.
+
+## Limitations
 
 The current version has several limitations:
 
-- The dataset is imbalanced toward translation.
-- Grammar examples are too few for reliable grammar explanation.
-- Evaluation is keyword-based and does not fully measure semantic correctness.
-- The system is a learning prototype, not a production translator.
-- The model can still produce incorrect or unnatural Japanese.
+* The dataset is imbalanced toward translation.
+* Grammar examples are too few for reliable grammar explanation.
+* Evaluation is keyword-based and does not fully measure semantic correctness.
+* The system is a learning prototype, not a production translator.
+* The model can still produce incorrect or unnatural Japanese.
+* Some prompts may produce unstable outputs if they differ strongly from the training format.
+* The model should be tested with short beginner-level prompts.
 
-Future work
+## Future Work
 
 Possible future improvements:
 
-- Add more reliable beginner grammar examples.
-- Improve vocabulary explanations using JMdict or a curated dictionary.
-- Add larger datasets for JLPT N4 and N3.
-- Improve evaluation with semantic or human-based assessment.
-- Add more structured exercises for learners.
+* Add more reliable beginner grammar explanation examples.
+* Improve vocabulary explanations using JMdict or a curated dictionary.
+* Add larger datasets for JLPT N4 and N3.
+* Improve evaluation with semantic or human-based assessment.
+* Add more structured learner exercises after reliable evaluation.
 
-Team members
+## Team Members
 
-- Iuzva Valeria
-- Bilinskaia Irina
+* Iuzva Valeria
+* Bilinskaia Irina
 
-Project status
+## Project Status
 
-This is an educational university project and a working prototype of a Japanese-English learning assistant.
+This is an educational university project and a working prototype of a Japanese-English learning assistant. The strongest current capabilities are beginner translation and vocabulary support. Grammar explanation is identified as a future-work direction because the final grammar dataset was too small for reliable model behavior.
