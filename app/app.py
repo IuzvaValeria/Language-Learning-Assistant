@@ -12,7 +12,7 @@ st.write("Beginner-friendly Japanese assistant for JLPT N5 translation, vocabula
 
 mode = st.sidebar.selectbox(
     "Choose mode",
-    ["translation", "grammar", "correction", "exercise", "chat"],
+    ["translation", "vocabulary", "chat"],
 )
 
 user_text = st.text_area("Your text", height=120)
