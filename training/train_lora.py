@@ -13,7 +13,7 @@ from trl import SFTConfig, SFTTrainer
 MODEL_NAME = "ministral/Ministral-3b-instruct"
 TRAIN_FILE = Path("data/final/train.jsonl")
 VAL_FILE = Path("data/final/val.jsonl")
-OUTPUT_DIR = Path("models/n5_lora_v3_translation_both")
+OUTPUT_DIR = Path("models/n5_lora_v4_translation_vocab_grammar")
 MAX_SEQ_LENGTH = 512
 SEED = 42
 

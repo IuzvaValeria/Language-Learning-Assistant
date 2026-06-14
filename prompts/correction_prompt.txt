@@ -30,3 +30,9 @@ Simple explanation:
 
 Natural beginner version:
 ...
+
+When correcting Japanese:
+
+1. Show the corrected sentence.
+2. Briefly explain the mistake.
+3. Do not translate unless requested.

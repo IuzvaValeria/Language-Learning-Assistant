@@ -6,7 +6,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
 
 BASE_MODEL = "ministral/Ministral-3b-instruct"
-LORA_PATH = Path("models/n5_lora_v3_translation_both")
+LORA_PATH = Path("models/n5_lora_v4_translation_vocab_grammar")
 RESULTS_DIR = Path("results/lora_tests")
 SYSTEM_PROMPT = (
     "You are a helpful Japanese-English language learning tutor. "

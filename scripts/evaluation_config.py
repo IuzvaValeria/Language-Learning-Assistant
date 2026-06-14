@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 BASE_MODEL = "ministral/Ministral-3b-instruct"
-LORA_PATH = Path("models/n5_lora_v4_translation_vocab_grammar") #change this to the path of your LoRA model
+LORA_PATH = Path("models/n5_lora_v4_translation_vocab_grammar")
 RESULTS_DIR = Path("results/evaluation")
 
 MAX_NEW_TOKENS = 200
