@@ -1,0 +1,1 @@
+{"run_info": {"timestamp": "2026-06-01T16:55:09.026162", "test_set": "basic", "description": "Basic mixed test: translation, grammar, vocabulary, correction.", "base_model": "ministral/Ministral-3b-instruct", "lora_path": "models\\n5_lora_v2_translation_fixed", "lora_exists": true}}

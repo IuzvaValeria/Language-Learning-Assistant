@@ -1,0 +1,7 @@
+{"run_info": {"timestamp": "2026-06-14T10:56:45.513002", "test_set": "basic", "description": "Basic mixed test: translation, grammar, vocabulary, correction.", "base_model": "ministral/Ministral-3b-instruct", "lora_path": "models\\n5_lora_v4_translation_vocab_grammar", "lora_exists": true}}
+{"index": 1, "question": "Translate to Japanese: I eat rice.", "expected": "ご飯を食べます。", "answer": "ラーメンを食べています。", "passed": false}
+{"index": 2, "question": "Translate to English: 時間がありません。", "expected": "I do not have time.", "answer": "I have no time.", "passed": false}
+{"index": 3, "question": "Explain the grammar in this sentence: 私は日本語を勉強します。", "expected": "は marks the topic", "answer": "I study Japanese.", "passed": false}
+{"index": 4, "question": "What does 食べる mean? Give reading and example.", "expected": "to eat", "answer": "食べる means \"to eat\".\nReading: おしまいにして。", "passed": true}
+{"index": 5, "question": "Correct this Japanese sentence: これは本ます。", "expected": "これは本です。", "answer": "This is a book.", "passed": false}
+{"summary": {"passed": 1, "total": 5, "accuracy": 0.2}}
